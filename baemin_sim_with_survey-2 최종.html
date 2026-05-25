@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>배민커넥트 라이더</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --mint: #2AC1BC;
+            --mint-dark: #1EA09C;
+            --mint-light: #E8F9F9;
+            --red: #FF3B30;
+            --orange: #FF9500;
+            --yellow: #FFCC00;
+            --bg: #F5F5F5;
+            --card: #FFFFFF;
+            --text: #1A1A1A;
+            --sub: #8E8E93;
+            --border: #E5E5EA;
+            --danger-bg: #FFF2F2;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow: hidden;
+        }
+
+        /* ── PC: 폰 목업 ── */
+        .phone-wrap {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            background: #1C1C1E;
+            border-radius: 55px;
+            padding: 12px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.9), inset 0 0 0 1px #3A3A3C;
+            flex-shrink: 0;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            border-radius: 44px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── 모바일: 전체화면 앱처럼 ── */
+        @media (max-width: 500px) {
+            html, body {
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+            body {
+                align-items: stretch;
+                background: var(--bg);
+            }
+            .phone-wrap {
+                width: 100%;
+                height: 100%;
+                height: -webkit-fill-available;
+                border-radius: 0;
+                padding: 0;
+                box-shadow: none;
+                background: var(--bg);
+            }
+            .phone-screen {
+                border-radius: 0;
+                height: 100%;
+            }
+        }
+
+        /* 상단 노치 */
+        .status-bar {
+            background: var(--mint);
+            padding: 14px 24px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .status-bar .time { font-size: 15px; font-weight: 800; }
+        .status-bar .icons { display: flex; gap: 5px; align-items: center; }
+
+        /* 헤더 */
+        .app-header {
+            background: var(--mint);
+            padding: 0 20px 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .rider-info { display: flex; align-items: center; gap: 10px; }
+        .rider-avatar {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+
+        .rider-name { font-size: 13px; font-weight: 800; }
+        .rider-status { font-size: 10px; opacity: 0.85; margin-top: 1px; }
+
+        .header-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.18);
+            border-radius: 12px;
+            padding: 9px 10px;
+            text-align: center;
+        }
+        .stat-box .label { font-size: 9px; opacity: 0.85; font-weight: 600; margin-bottom: 3px; }
+        .stat-box .value { font-size: 15px; font-weight: 900; }
+        .stat-box .unit { font-size: 9px; font-weight: 600; }
+
+        /* 메인 컨텐츠 */
+        .screen-body {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 85px;
+        }
+
+        /* 하단 탭바 */
+        .tab-bar {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 83px;
+            background: white;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            padding-top: 10px;
+            border-radius: 0 0 44px 44px;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: var(--sub);
+            font-size: 9px;
+            font-weight: 600;
+            padding-top: 2px;
+        }
+        .tab-item.active { color: var(--mint); }
+        .tab-item i { font-size: 20px; }
+
+        .tab-exit {
+            color: #FF3B30 !important;
+            border-left: 1px solid var(--border);
+        }
+        .tab-exit i { font-size: 18px; }
+
+        /* 카드 */
+        .card {
+            background: white;
+            border-radius: 16px;
+            margin: 10px 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .card-header {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title { font-size: 13px; font-weight: 800; color: var(--text); }
+        .card-badge {
+            font-size: 10px; font-weight: 700;
+            background: var(--mint-light);
+            color: var(--mint);
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+
+        /* 버튼 */
+        .btn {
+            display: block; width: 100%;
+            padding: 16px;
+            border: none; cursor: pointer;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 15px; font-weight: 700;
+            border-radius: 14px;
+            transition: transform 0.1s, opacity 0.1s;
+        }
+        .btn:active { transform: scale(0.97); opacity: 0.9; }
+        .btn-primary { background: var(--mint); color: white; }
+        .btn-secondary { background: #F0F0F0; color: #555; }
+        .btn-danger { background: var(--danger-bg); color: var(--red); }
+        .btn-dark { background: #1A1A1A; color: white; }
+
+        /* 모달 */
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            display: flex;
+            align-items: flex-end;
+            z-index: 100;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-sheet {
+            background: white;
+            width: 100%;
+            border-radius: 24px 24px 0 0;
+            padding: 6px 20px 24px;
+            animation: sheetUp 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+            max-height: 88%;
+            overflow-y: auto;
+        }
+
+        @keyframes sheetUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-handle {
+            width: 36px; height: 4px;
+            background: #DEDEDE;
+            border-radius: 2px;
+            margin: 10px auto 16px;
+        }
+
+        /* 타이머 링 */
+        .timer-ring-wrap {
+            position: relative;
+            width: 56px; height: 56px;
+        }
+        .timer-ring-wrap svg {
+            transform: rotate(-90deg);
+            position: absolute; top: 0; left: 0;
+        }
+        .timer-ring-wrap .count {
+            position: absolute;
+            inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 900;
+            color: var(--red);
+        }
+
+        /* 배달 요청 카드 */
+        .order-route {
+            background: #F8F8F8;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin: 12px 0;
+        }
+
+        .route-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 6px 0;
+        }
+
+        .route-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .route-line {
+            width: 1px;
+            height: 18px;
+            background: #D0D0D0;
+            margin-left: 4px;
+        }
+
+        .route-label { font-size: 10px; color: var(--sub); font-weight: 600; margin-bottom: 1px; }
+        .route-name { font-size: 14px; font-weight: 800; }
+
+        /* AI 추천 뱃지 */
+        .ai-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 9px; font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 20px;
+            margin-bottom: 6px;
+        }
+
+        /* 경고 박스 */
+        .warn-box {
+            background: var(--danger-bg);
+            border-left: 3px solid var(--red);
+            border-radius: 0 10px 10px 0;
+            padding: 10px 14px;
+            margin: 10px 0;
+            font-size: 11px; font-weight: 700;
+            color: #CC0000;
+            line-height: 1.5;
+        }
+
+        /* 등급 바 */
+        .grade-bar-wrap { padding: 0 16px 16px; }
+        .grade-bar-bg {
+            height: 8px; background: #EEE;
+            border-radius: 4px; overflow: hidden;
+        }
+        .grade-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        /* 별점 */
+        .stars { display: flex; gap: 3px; }
+        .star { font-size: 14px; }
+        .star.filled { color: #FFD700; }
+        .star.empty { color: #DDD; }
+
+        /* 알림 토스트 */
+        .toast {
+            position: absolute;
+            top: 130px; left: 16px; right: 16px;
+            background: rgba(30,30,30,0.95);
+            color: white;
+            border-radius: 14px;
+            padding: 13px 16px;
+            font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; gap: 10px;
+            z-index: 200;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+        }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* 애니메이션 */
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .pulse-dot {
+            width: 8px; height: 8px;
+            background: #4CD964;
+            border-radius: 50%;
+            animation: pulseDot 1.5s infinite;
+        }
+        @keyframes pulseDot {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(76,217,100,0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(76,217,100,0); }
+        }
+
+        .moto-anim {
+            display: inline-block;
+            animation: motoMove 0.4s ease-in-out infinite alternate;
+        }
+        @keyframes motoMove {
+            from { transform: translateY(0) rotate(-3deg); }
+            to { transform: translateY(-4px) rotate(3deg); }
+        }
+
+        .rank-drop { animation: rankDrop 0.5s ease; }
+        @keyframes rankDrop {
+            0% { color: var(--text); }
+            50% { color: var(--red); transform: scale(1.2); }
+            100% { color: var(--red); }
+        }
+
+        /* 지도 모의 */
+        .fake-map {
+            height: 180px;
+            background: #E8F0E8;
+            position: relative;
+            overflow: hidden;
+        }
+        .map-grid line { stroke: #D4E4D4; stroke-width: 1; }
+        .map-road { stroke: white; stroke-width: 6; fill: none; }
+        .map-road-sm { stroke: white; stroke-width: 3; fill: none; }
+
+        /* 진행 단계 표시 */
+        .steps-indicator {
+            display: flex;
+            gap: 6px;
+            padding: 10px 16px 0;
+        }
+        .step-dot {
+            flex: 1; height: 3px;
+            border-radius: 2px;
+            background: #EEE;
+            transition: background 0.3s;
+        }
+        .step-dot.done { background: var(--mint); }
+        .step-dot.current { background: var(--mint); opacity: 0.5; animation: stepPulse 1s infinite; }
+        @keyframes stepPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+        .penalty-flash {
+            animation: penaltyFlash 0.5s ease 3;
+        }
+        @keyframes penaltyFlash {
+            0%,100% { background: var(--mint); }
+            50% { background: var(--red); }
+        }
+
+        .number-tick {
+            display: inline-block;
+            animation: tickUp 0.3s ease;
+        }
+        @keyframes tickUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 수입 내역 행 */
+        .income-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 11px 16px;
+            border-bottom: 1px solid #F5F5F5;
+            font-size: 13px;
+        }
+        .income-row:last-child { border-bottom: none; }
+        .income-label { color: var(--sub); font-weight: 500; }
+        .income-value { font-weight: 800; }
+        .income-value.minus { color: var(--red); }
+        .income-value.plus { color: var(--mint); }
+
+        /* 배차요청 카운트다운 숫자 크게 */
+        .big-timer {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--red);
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ── 설문 오버레이 ── */
+        #survey-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.82);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.35s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        #survey-sheet {
+            width: 100%;
+            max-width: 500px;
+            height: 92vh;
+            background: white;
+            border-radius: 24px 24px 0 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: sheetUp 0.4s cubic-bezier(0.34,1.1,0.64,1);
+        }
+
+        #survey-header {
+            background: var(--mint);
+            color: white;
+            padding: 16px 20px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        #survey-header .sh-title { font-size: 15px; font-weight: 900; }
+        #survey-header .sh-sub   { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+
+        #survey-close-btn {
+            background: rgba(255,255,255,0.22);
+            border: none; color: white;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        #survey-iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+        }
+
+        #survey-loading {
+            position: absolute;
+            inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 12px;
+            background: white; font-size: 13px; color: var(--sub);
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-wrap">
+<div class="phone-screen" id="app">
+
+    <!-- 상태바 -->
+    <div class="status-bar">
+        <span class="time" id="status-time">오후 6:47</span>
+        <div class="icons">
+            <i class="fas fa-signal" style="font-size:12px"></i>
+            <i class="fas fa-wifi" style="font-size:12px"></i>
+            <i class="fas fa-battery-three-quarters" style="font-size:12px"></i>
+        </div>
+    </div>
+
+    <!-- 앱 헤더 -->
+    <div class="app-header">
+        <div class="header-top">
+            <div class="rider-info">
+                <div class="rider-avatar">🧑</div>
+                <div>
+                    <div class="rider-name">김○○ 라이더</div>
+                    <div class="rider-status" id="header-status">
+                        <span class="pulse-dot" style="display:inline-block;width:6px;height:6px;background:#7FFFB0;border-radius:50%;margin-right:4px;vertical-align:middle;"></span>
+                        운행 중
+                    </div>
+                </div>
+            </div>
+            <div style="text-align:right">
+                <div style="font-size:9px;opacity:0.8;margin-bottom:2px">진행</div>
+                <div style="font-size:14px;font-weight:900"><span id="prog-done">0</span>/7건</div>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-box">
+                <div class="label">오늘 수입</div>
+                <div class="value"><span id="hd-earn">0</span></div>
+                <div class="unit">원</div>
+            </div>
+            <div class="stat-box" id="stat-rank-box">
+                <div class="label">실시간 순위</div>
+                <div class="value"><span id="hd-rank">--</span></div>
+                <div class="unit">위</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">수락률</div>
+                <div class="value"><span id="hd-accept">100</span></div>
+                <div class="unit">%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 진행 단계 도트 -->
+    <div class="steps-indicator" id="steps-indicator"></div>
+
+    <!-- 메인 바디 -->
+    <div class="screen-body" id="screen-body">
+        <!-- 인트로 화면 -->
+        <div id="screen-intro" style="padding:30px 20px;text-align:center">
+            <div style="font-size:56px;margin-bottom:20px">🛵</div>
+            <div style="font-size:22px;font-weight:900;line-height:1.3;margin-bottom:12px">
+                안녕하세요,<br>신규 라이더님!
+            </div>
+            <div style="font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:8px">
+                배민커넥트에 오신 것을 환영합니다.<br>
+                오늘의 목표: <strong style="color:var(--text)">7건 완료</strong>
+            </div>
+
+            <div class="card" style="margin:20px 0;text-align:left">
+                <div class="card-header">
+                    <span class="card-title">📊 내 알고리즘 점수</span>
+                    <span class="card-badge">신규</span>
+                </div>
+                <div style="padding:14px 16px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <span style="font-size:12px;color:var(--sub);font-weight:600">배차 가중치 등급</span>
+                        <span style="font-size:13px;font-weight:800;color:var(--mint)">🥉 일반</span>
+                    </div>
+                    <div class="grade-bar-bg">
+                        <div class="grade-bar-fill" style="width:28%;background:var(--mint)"></div>
+                    </div>
+                    <div style="font-size:10px;color:var(--sub);margin-top:6px">
+                        수락률 95% 이상 유지 시 → <strong>우선배차 등급</strong> 승격
+                    </div>
+                </div>
+                <div style="padding:0 16px 14px">
+                    <div class="warn-box">
+                        ⚠️ 배차 거절 또는 취소가 누적될 경우 배차 빈도가 자동으로 감소합니다.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom:20px;text-align:left">
+                <div class="card-header">
+                    <span class="card-title">🎯 오늘의 미션</span>
+                </div>
+                <div style="padding:14px 16px">
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F5F5F5;font-size:13px">
+                        <span>7건 완료</span>
+                        <span style="font-weight:800;color:var(--orange)">+5,000원 보너스</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px">
+                        <span>수락률 95% 유지</span>
+                        <span style="font-weight:800;color:var(--orange)">+2,000원 보너스</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="startSim()" style="font-size:17px;padding:18px">
+                운행 시작하기 →
+            </button>
+            <div style="font-size:10px;color:#BBB;margin-top:10px">
+                운행 시작 시 위치정보 수집에 동의한 것으로 간주합니다
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단 탭바 -->
+    <div class="tab-bar">
+        <div class="tab-item active"><i class="fas fa-home"></i>홈</div>
+        <div class="tab-item"><i class="fas fa-route"></i>내역</div>
+        <div class="tab-item"><i class="fas fa-chart-bar"></i>통계</div>
+        <div class="tab-item"><i class="fas fa-user"></i>내정보</div>
+        <div class="tab-item tab-exit" onclick="showExitConfirm()" id="tab-exit-btn">
+            <i class="fas fa-door-open"></i>종료
+        </div>
+    </div>
+
+    <!-- 모달: 시뮬레이션 종료 확인 -->
+    <div class="modal-overlay hidden" id="modal-exit">
+        <div class="modal-sheet" style="padding-bottom:28px">
+            <div class="modal-handle"></div>
+            <div style="text-align:center;padding:4px 0 20px">
+                <div style="font-size:40px;margin-bottom:12px">🚪</div>
+                <div style="font-size:18px;font-weight:900;margin-bottom:8px">시뮬레이션을 종료할까요?</div>
+                <div style="font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:24px">
+                    지금까지의 체험 내용을 바탕으로<br>설문에 참여할 수 있습니다.
+                </div>
+                <div style="background:#F8F8F8;border-radius:14px;padding:14px 16px;margin-bottom:20px;text-align:left">
+                    <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:8px">현재까지 진행 상황</div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #EEE">
+                        <span>완료 건수</span><strong id="exit-steps">0건</strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #EEE">
+                        <span>누적 수입</span><strong id="exit-earn" style="color:var(--mint)">0원</strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0">
+                        <span>수락률</span><strong id="exit-accept">100%</strong>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="doEarlyExit()" style="font-size:15px;padding:16px;margin-bottom:10px">
+                    📋 종료하고 설문 참여하기
+                </button>
+                <button class="btn btn-secondary" onclick="closeExitConfirm()" style="font-size:13px;padding:13px">
+                    계속 체험하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달: 배차 요청 -->
+    <div class="modal-overlay hidden" id="modal-order">
+        <div class="modal-sheet" id="modal-order-sheet">
+            <div class="modal-handle"></div>
+
+            <!-- AI 뱃지 + 타이머 -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div>
+                    <div class="ai-badge"><i class="fas fa-robot" style="font-size:8px"></i> AI 추천 배차</div>
+                    <div style="font-size:17px;font-weight:900">새 배달 요청</div>
+                </div>
+                <div style="text-align:center">
+                    <div class="big-timer" id="order-timer">15</div>
+                    <div style="font-size:9px;color:var(--sub);font-weight:600">초 안에 결정</div>
+                </div>
+            </div>
+
+            <!-- SVG 타이머 바 -->
+            <div style="width:100%;height:5px;background:#EEE;border-radius:3px;overflow:hidden;margin-bottom:14px">
+                <div id="timer-progress-bar" style="height:100%;width:100%;background:var(--red);border-radius:3px;transition:width 1s linear"></div>
+            </div>
+
+            <!-- 경로 -->
+            <div class="order-route">
+                <div class="route-item">
+                    <div class="route-dot" style="background:var(--mint)"></div>
+                    <div>
+                        <div class="route-label">픽업</div>
+                        <div class="route-name" id="o-store">--</div>
+                        <div style="font-size:11px;color:var(--sub)" id="o-store-addr">서울시 --</div>
+                    </div>
+                </div>
+                <div class="route-line" style="margin-left:4px"></div>
+                <div class="route-item">
+                    <div class="route-dot" style="background:var(--orange)"></div>
+                    <div>
+                        <div class="route-label">배달</div>
+                        <div class="route-name" id="o-dest">--</div>
+                        <div style="font-size:11px;color:var(--sub)" id="o-dest-addr">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 수입 정보 -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <div>
+                    <div style="font-size:11px;color:var(--sub);font-weight:600">예상 수입</div>
+                    <div style="font-size:22px;font-weight:900" id="o-pay">3,800원</div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:11px;color:var(--sub);font-weight:600">거리 / 예상시간</div>
+                    <div style="font-size:14px;font-weight:800" id="o-info">2.1km · 12분</div>
+                </div>
+            </div>
+
+            <div style="font-size:10px;color:var(--sub);margin-bottom:10px" id="o-ai-msg">
+                🤖 AI분석: 현재 구역 내 높은 수요 예측. 빠른 수락 권장.
+            </div>
+
+            <div class="warn-box" id="o-warn-box">
+                ⚠️ 거절 시 수락률 하락 → 배차 가중치 감소 → 수입 감소
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:14px;position:sticky;bottom:0;background:white;padding:6px 0 4px">
+                <button class="btn btn-secondary" onclick="doDecline()" style="flex:1;padding:16px;font-size:14px;color:#999">
+                    거절
+                </button>
+                <button class="btn btn-primary" onclick="doAccept()" style="flex:2;padding:16px;font-size:17px;font-weight:900">
+                    수락하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div><!-- phone-screen end -->
+</div><!-- phone-wrap end -->
+
+<!-- ══════════════════════════════════════════
+     설문 오버레이 (시뮬레이션 종료 후 표시)
+══════════════════════════════════════════ -->
+<div id="survey-overlay" style="display:none">
+    <div id="survey-sheet">
+        <div id="survey-header">
+            <div>
+                <div class="sh-title">📋 설문 참여하기</div>
+                <div class="sh-sub">시뮬레이션 체험 후 의견을 알려주세요</div>
+            </div>
+            <button id="survey-close-btn" onclick="closeSurvey()" title="닫기">✕</button>
+        </div>
+        <div style="position:relative;flex:1;display:flex;flex-direction:column">
+            <div id="survey-loading">
+                <div style="font-size:28px">📋</div>
+                <div>설문지를 불러오는 중…</div>
+            </div>
+            <iframe
+                id="survey-iframe"
+                src="https://docs.google.com/forms/d/1aIlkPmdtTrI4XGoF3jSownmxGz4NDL4AaT705JBBG0s/viewform?embedded=true"
+                onload="document.getElementById('survey-loading').style.display='none'; this.style.display='block'"
+            ></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+// =============================================
+// 데이터 & 상태
+// =============================================
+const TOTAL = 7;
+const TOTAL_RIDERS = 6284;
+
+const ORDERS = [
+    { store: "맘스터치 역삼점", storeAddr: "강남구 역삼동 823-1", dest: "래미안 그레이튼 104동", destAddr: "강남구 역삼동 677", pay: 3800, dist: "1.8km", time: "10분", ai: "🤖 현재 픽업지 기준 최단거리 배달입니다. 추천!", warn: true },
+    { store: "스타벅스 강남대로점", storeAddr: "강남구 강남대로 396", dest: "강남파이낸스센터 14층", destAddr: "강남구 테헤란로 152", pay: 4200, dist: "2.4km", time: "14분", ai: "🤖 고객 재주문률 높음. 별점 관리에 유리한 배달입니다.", warn: true },
+    { store: "버거킹 서초점", storeAddr: "서초구 서초대로 77길", dest: "서초구 현대아파트 3단지", destAddr: "서초구 서초동 1445", pay: 3500, dist: "1.5km", time: "9분", ai: "🤖 이 시간대 이 구역은 수요 피크. 수락률에 영향 큽니다.", warn: true },
+    { store: "교촌치킨 논현점", storeAddr: "강남구 논현동 201", dest: "논현 아이파크 202동", destAddr: "강남구 논현동 88-1", pay: 4800, dist: "3.1km", time: "18분", ai: "🤖 배달 거리 대비 수입 양호. AI 추천 수락 건입니다.", warn: true },
+    { store: "반올림피자 강남점", storeAddr: "강남구 역삼동 666-3", dest: "역삼동 오피스텔 A동", destAddr: "강남구 역삼동 608", pay: 3600, dist: "1.9km", time: "11분", ai: "🤖 근거리 고수익 건. 미수락 시 타 라이더에게 우선 배정됩니다.", warn: false },
+    { store: "홍콩반점 강남점", storeAddr: "강남구 강남대로 262", dest: "강남구청 인근 오피스", destAddr: "강남구 삼성동 70-1", pay: 5200, dist: "3.8km", time: "22분", ai: "🤖 수락률 회복을 위해 이 건 수락을 강력 권장합니다.", warn: true },
+    { store: "이삭토스트 삼성점", storeAddr: "강남구 삼성동 22-8", dest: "코엑스 인터컨티넨탈 로비", destAddr: "강남구 봉은사로 524", pay: 4500, dist: "2.7km", time: "15분", ai: "🤖 마지막 배달. 7건 달성 보너스까지 1건 남았습니다!", warn: false }
+];
+
+const state = {
+    step: 0,
+    earn: 0,
+    rank: Math.floor(TOTAL_RIDERS * 0.85),
+    accepts: 0,
+    declines: 0,
+    logs: [],
+    timerInterval: null,
+    timeLeft: 15,
+    scenarioPhase: 0, // 0=idle, 1=pickup, 2=en-route, 3=complete
+};
+
+// =============================================
+// 유틸
+// =============================================
+function updateHeader() {
+    document.getElementById('hd-earn').textContent = state.earn.toLocaleString();
+    document.getElementById('hd-rank').textContent = state.rank.toLocaleString();
+    const total = state.accepts + state.declines;
+    const pct = total === 0 ? 100 : Math.round((state.accepts / total) * 100);
+    document.getElementById('hd-accept').textContent = pct;
+    document.getElementById('prog-done').textContent = state.step;
+}
+
+function updateSteps() {
+    const wrap = document.getElementById('steps-indicator');
+    wrap.innerHTML = '';
+    for (let i = 0; i < TOTAL; i++) {
+        const d = document.createElement('div');
+        d.className = 'step-dot';
+        if (i < state.step) d.classList.add('done');
+        else if (i === state.step) d.classList.add('current');
+        wrap.appendChild(d);
+    }
+}
+
+function getTime() {
+    const base = 18 * 60 + 47 + state.step * 15 + Math.floor(Math.random()*5);
+    const h = Math.floor(base / 60);
+    const m = base % 60;
+    const suffix = h >= 12 ? '오후' : '오전';
+    return `${suffix} ${h > 12 ? h-12 : h}:${String(m).padStart(2,'0')}`;
+}
+
+function toast(icon, msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<span style="font-size:18px">${icon}</span><span>${msg}</span>`;
+    document.getElementById('app').appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+function logAction(act, extra={}) {
+    state.logs.push({ step: state.step+1, action: act, earn: state.earn, rank: state.rank, time: new Date().toISOString(), ...extra });
+}
+
+function renderBody(html) {
+    document.getElementById('screen-body').innerHTML = html;
+}
+
+// =============================================
+// 시작
+// =============================================
+function startSim() {
+    logAction('SIM_START');
+    document.getElementById('tab-exit-btn').style.display = 'flex';
+    updateSteps();
+    showIdleScreen();
+}
+
+// =============================================
+// 대기 화면
+// =============================================
+function showIdleScreen() {
+    document.getElementById('status-time').textContent = getTime();
+    const msgs = [
+        "주변 배달 탐색 중…",
+        "AI가 최적 배달을 분석 중…",
+        "알고리즘이 내 위치를 확인 중…",
+    ];
+    renderBody(`
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:380px;text-align:center;padding:20px">
+            <div style="position:relative;width:72px;height:72px;margin-bottom:20px">
+                <svg width="72" height="72" viewBox="0 0 72 72">
+                    <circle cx="36" cy="36" r="30" fill="none" stroke="#EEE" stroke-width="5"/>
+                    <circle cx="36" cy="36" r="30" fill="none" stroke="var(--mint)" stroke-width="5"
+                        stroke-dasharray="47 141" stroke-linecap="round"
+                        transform="rotate(-90 36 36)" style="animation:spin 1.5s linear infinite"/>
+                </svg>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px">🛵</div>
+            </div>
+            <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:6px">배달 탐색 중</div>
+            <div style="font-size:12px;color:var(--sub)" id="idle-msg">${msgs[state.step%3]}</div>
+            <div style="margin-top:30px;width:100%">
+                <div class="card" style="margin:0;text-align:left">
+                    <div style="padding:14px 16px">
+                        <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:6px">오늘 운행 현황</div>
+                        <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #F5F5F5">
+                            <span>완료 건수</span><strong>${state.step}건</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #F5F5F5">
+                            <span>누적 수입</span><strong style="color:var(--mint)">${state.earn.toLocaleString()}원</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0">
+                            <span>현재 순위</span><strong>${state.rank.toLocaleString()}위 / ${TOTAL_RIDERS.toLocaleString()}명</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+    setTimeout(() => showOrderModal(), 2200);
+}
+
+// =============================================
+// 배차 모달
+// =============================================
+function showOrderModal() {
+    if (state.step >= TOTAL) { renderFinal(); return; }
+    const o = ORDERS[state.step];
+    document.getElementById('o-store').textContent = o.store;
+    document.getElementById('o-store-addr').textContent = o.storeAddr;
+    document.getElementById('o-dest').textContent = o.dest;
+    document.getElementById('o-dest-addr').textContent = o.destAddr;
+    document.getElementById('o-pay').textContent = o.pay.toLocaleString() + '원';
+    document.getElementById('o-info').textContent = `${o.dist} · ${o.time}`;
+    document.getElementById('o-ai-msg').textContent = o.ai;
+    document.getElementById('o-warn-box').style.display = o.warn ? '' : 'none';
+    document.getElementById('modal-order').classList.remove('hidden');
+
+    // 타이머
+    state.timeLeft = 15;
+    document.getElementById('order-timer').textContent = 15;
+    document.getElementById('timer-progress-bar').style.width = '100%';
+    clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => {
+        state.timeLeft--;
+        document.getElementById('order-timer').textContent = state.timeLeft;
+        document.getElementById('timer-progress-bar').style.width = (state.timeLeft/15*100)+'%';
+        if (state.timeLeft <= 0) {
+            clearInterval(state.timerInterval);
+            handleTimeout();
+        }
+    }, 1000);
+
+    logAction('ORDER_SHOWN', { order: o.store });
+}
+
+function handleTimeout() {
+    document.getElementById('modal-order').classList.add('hidden');
+    logAction('ORDER_TIMEOUT');
+    state.declines++;
+    applyPenalty('시간 초과로 배차가 자동 거절되었습니다.');
+    updateHeader();
+    setTimeout(() => showIdleScreen(), 1800);
+}
+
+function doAccept() {
+    clearInterval(state.timerInterval);
+    document.getElementById('modal-order').classList.add('hidden');
+    logAction('ORDER_ACCEPT');
+    state.accepts++;
+    updateHeader();
+    showPickupScreen();
+}
+
+function doDecline() {
+    clearInterval(state.timerInterval);
+    document.getElementById('modal-order').classList.add('hidden');
+    logAction('ORDER_DECLINE');
+    state.declines++;
+    applyPenalty('배차를 거절하셨습니다. 수락률이 하락합니다.');
+    updateHeader();
+    setTimeout(() => showIdleScreen(), 2000);
+}
+
+function applyPenalty(msg) {
+    // 수입 감점
+    state.earn = Math.max(0, state.earn - 400);
+    // 순위 하락
+    state.rank = Math.min(TOTAL_RIDERS, state.rank + Math.floor(Math.random()*300+200));
+    updateHeader();
+    // 헤더 flicker
+    const hd = document.querySelector('.app-header');
+    hd.style.transition = 'background 0.15s';
+    hd.style.background = '#FF3B30';
+    setTimeout(() => { hd.style.background = ''; hd.style.background = 'var(--mint)'; }, 400);
+    toast('📉', msg);
+}
+
+// =============================================
+// 픽업 화면
+// =============================================
+function showPickupScreen() {
+    const o = ORDERS[state.step];
+    renderBody(`
+        <div style="padding:0 0 16px">
+            <!-- 가짜 지도 -->
+            <div class="fake-map">
+                <svg width="100%" height="100%" viewBox="0 0 390 180" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="390" height="180" fill="#EAF0EA"/>
+                    <!-- 도로 격자 -->
+                    <line x1="0" y1="90" x2="390" y2="90" stroke="white" stroke-width="10"/>
+                    <line x1="130" y1="0" x2="130" y2="180" stroke="white" stroke-width="8"/>
+                    <line x1="260" y1="0" x2="260" y2="180" stroke="white" stroke-width="8"/>
+                    <line x1="0" y1="40" x2="390" y2="40" stroke="white" stroke-width="5"/>
+                    <line x1="0" y1="140" x2="390" y2="140" stroke="white" stroke-width="5"/>
+                    <!-- 블록들 -->
+                    <rect x="10" y="50" width="110" height="30" rx="4" fill="#D8E8D8"/>
+                    <rect x="140" y="50" width="110" height="30" rx="4" fill="#D8E8D8"/>
+                    <rect x="270" y="50" width="110" height="30" rx="4" fill="#D8E8D8"/>
+                    <rect x="10" y="100" width="110" height="30" rx="4" fill="#D8E8D8"/>
+                    <rect x="270" y="100" width="110" height="30" rx="4" fill="#D8E8D8"/>
+                    <!-- 핀 -->
+                    <circle cx="130" cy="90" r="14" fill="var(--mint)"/>
+                    <text x="130" y="95" text-anchor="middle" font-size="14">📍</text>
+                    <circle cx="260" cy="140" r="14" fill="var(--orange)"/>
+                    <text x="260" y="145" text-anchor="middle" font-size="14">🏠</text>
+                    <!-- 내 위치 -->
+                    <circle cx="80" cy="90" r="10" fill="#007AFF" opacity="0.9"/>
+                    <circle cx="80" cy="90" r="18" fill="#007AFF" opacity="0.2"/>
+                    <text x="80" y="95" text-anchor="middle" font-size="12">🛵</text>
+                </svg>
+            </div>
+
+            <div style="padding:0 16px">
+                <!-- 픽업 진행 상태 -->
+                <div class="card" style="margin:12px 0">
+                    <div class="card-header">
+                        <span class="card-title">🟢 가게로 이동 중</span>
+                        <span class="card-badge">${o.dist}</span>
+                    </div>
+                    <div class="order-route" style="margin:12px 16px;margin-top:0;border-radius:0 0 8px 8px">
+                        <div class="route-item">
+                            <div class="route-dot" style="background:var(--mint)"></div>
+                            <div>
+                                <div class="route-label">픽업지</div>
+                                <div class="route-name">${o.store}</div>
+                                <div style="font-size:11px;color:var(--sub)">${o.storeAddr}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 조리 지연 이벤트 -->
+                <div class="card" style="margin:0;border:2px solid #FFE5E5">
+                    <div style="padding:14px 16px">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                            <span style="font-size:18px">⏳</span>
+                            <div>
+                                <div style="font-size:13px;font-weight:900;color:var(--red)">조리 지연 알림</div>
+                                <div style="font-size:11px;color:var(--sub)">가게로부터 메시지 수신</div>
+                            </div>
+                        </div>
+                        <div style="background:#FFF8F8;border-radius:10px;padding:12px;font-size:12px;color:#555;line-height:1.6;margin-bottom:12px;border-left:3px solid var(--red)">
+                            "죄송합니다. 주문이 몰려 조리가 <strong>약 8~12분 지연</strong>될 예정입니다. 대기 부탁드립니다."
+                        </div>
+                        <div style="font-size:11px;color:var(--sub);margin-bottom:12px">
+                            ※ 취소 시 <strong style="color:var(--red)">–400점</strong> 부과 및 고객 불만족 처리됩니다.
+                        </div>
+                        <button class="btn btn-dark" onclick="waitStore()" style="margin-bottom:8px;font-size:14px;padding:14px">
+                            기다리겠습니다 (평점 유지)
+                        </button>
+                        <button class="btn btn-danger" onclick="cancelStore()" style="font-size:12px;padding:12px">
+                            배차 취소 (–400점 + 수락률 하락)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+}
+
+function waitStore() {
+    logAction('STORE_WAIT');
+    toast('👍', '대기를 선택했습니다. 조리 완료를 기다립니다.');
+    setTimeout(() => showRouteChoice(), 1500);
+}
+
+function cancelStore() {
+    logAction('STORE_CANCEL');
+    state.earn = Math.max(0, state.earn - 400);
+    state.rank = Math.min(TOTAL_RIDERS, state.rank + 400);
+    state.declines++;
+    updateHeader();
+    applyPenalty('배차를 취소했습니다. 평점과 순위가 하락합니다.');
+    setTimeout(() => showIdleScreen(), 2000);
+}
+
+// =============================================
+// 경로 선택
+// =============================================
+function showRouteChoice() {
+    renderBody(`
+        <div style="padding:16px">
+            <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:4px">픽업 완료 · 이제 배달하세요</div>
+            <div style="font-size:18px;font-weight:900;margin-bottom:16px">경로를 선택하세요</div>
+
+            <div onclick="chooseRoute('ai')" style="background:white;border:2.5px solid var(--mint);border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;transition:transform 0.1s"
+                onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''">
+                <div class="ai-badge"><i class="fas fa-robot" style="font-size:8px"></i> AI 추천</div>
+                <div style="font-size:15px;font-weight:900;color:var(--mint);margin-bottom:4px">알고리즘 추천 경로</div>
+                <div style="font-size:12px;color:var(--sub);margin-bottom:8px">안전하고 검증된 최적 경로</div>
+                <div style="display:flex;gap:10px">
+                    <span style="background:var(--mint-light);color:var(--mint);font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px">+500pt 보너스</span>
+                    <span style="background:#EEE;color:#666;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px">안전 인증 경로</span>
+                </div>
+            </div>
+
+            <div onclick="chooseRoute('manual')" style="background:white;border:2px solid #E5E5EA;border-radius:16px;padding:16px;cursor:pointer;transition:transform 0.1s"
+                onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''">
+                <div style="font-size:15px;font-weight:800;color:#555;margin-bottom:4px">내가 아는 지름길</div>
+                <div style="font-size:12px;color:var(--sub);margin-bottom:8px">AI 미검증 · 사고 발생 시 본인 과실</div>
+                <div style="display:flex;gap:10px">
+                    <span style="background:#FFF2F2;color:var(--red);font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px">보너스 없음</span>
+                    <span style="background:#FFF8EE;color:var(--orange);font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px">사고 위험</span>
+                </div>
+            </div>
+
+            <div style="margin-top:14px;background:#FFFBEF;border-radius:12px;padding:12px 14px;font-size:11px;color:#7D6500;line-height:1.6">
+                💡 AI 추천 경로 선택 시 <strong>+500pt</strong>가 추가 지급됩니다.<br>
+                AI 미추천 경로의 경우 플랫폼은 사고에 대한 책임을 지지 않습니다.
+            </div>
+        </div>
+    `);
+}
+
+function chooseRoute(type) {
+    logAction('ROUTE_CHOICE', { route: type });
+    if (type === 'ai') {
+        state.earn += 500;
+        toast('⭐', 'AI 추천 경로 선택! +500pt 지급');
+        updateHeader();
+    }
+    showEnRoute();
+}
+
+// =============================================
+// 배달 중
+// =============================================
+function showEnRoute() {
+    const o = ORDERS[state.step];
+    renderBody(`
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;padding:20px">
+            <div style="font-size:64px;margin-bottom:8px" class="moto-anim">🛵</div>
+            <div style="font-size:18px;font-weight:900;margin-bottom:4px">배달 중입니다</div>
+            <div style="font-size:12px;color:var(--sub);margin-bottom:24px">${o.dest} 으로 이동 중</div>
+            <div style="width:100%;background:#EEE;height:6px;border-radius:3px;overflow:hidden;margin-bottom:8px">
+                <div id="route-bar" style="height:100%;width:0%;background:var(--mint);border-radius:3px;transition:width 0.3s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--sub)" id="route-pct">이동 중... 0%</div>
+            <div style="margin-top:24px;width:100%">
+                <div class="card" style="margin:0;text-align:left">
+                    <div style="padding:12px 16px;font-size:12px;color:var(--sub)">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span>예상 도착</span><strong style="color:var(--text)">${o.time}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between">
+                            <span>이번 건 수입</span><strong style="color:var(--mint)">${o.pay.toLocaleString()}원</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    let pct = 0;
+    const bar = document.getElementById('route-bar');
+    const txt = document.getElementById('route-pct');
+    const iv = setInterval(() => {
+        pct += Math.random()*12 + 5;
+        if (pct >= 100) { pct = 100; clearInterval(iv); setTimeout(showComplete, 500); }
+        if (bar) bar.style.width = pct+'%';
+        if (txt) txt.textContent = `이동 중... ${Math.round(pct)}%`;
+    }, 280);
+}
+
+// =============================================
+// 배달 완료
+// =============================================
+function showComplete() {
+    const o = ORDERS[state.step];
+    state.earn += o.pay;
+    state.accepts++;
+    // 순위 상승
+    state.rank = Math.max(1, state.rank - Math.floor(Math.random()*150+100));
+    updateHeader();
+    logAction('DELIVERY_COMPLETE', { pay: o.pay });
+
+    renderBody(`
+        <div style="padding:20px;text-align:center">
+            <div style="font-size:54px;margin-bottom:12px">✅</div>
+            <div style="font-size:22px;font-weight:900;margin-bottom:4px">배달 완료!</div>
+            <div style="font-size:12px;color:var(--sub);margin-bottom:20px">${o.store} → ${o.dest}</div>
+
+            <div class="card" style="margin-bottom:16px;text-align:left">
+                <div class="income-row">
+                    <span class="income-label">배달 수수료</span>
+                    <span class="income-value plus">+${o.pay.toLocaleString()}원</span>
+                </div>
+                <div class="income-row">
+                    <span class="income-label">AI경로 보너스</span>
+                    <span class="income-value plus">+500pt</span>
+                </div>
+                <div class="income-row" style="background:#FAFAFA">
+                    <span style="font-size:13px;font-weight:800">오늘 누적 수입</span>
+                    <span style="font-size:16px;font-weight:900;color:var(--mint)">${state.earn.toLocaleString()}원</span>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom:20px;text-align:left">
+                <div style="padding:14px 16px">
+                    <div style="font-size:12px;color:var(--sub);font-weight:600;margin-bottom:8px">현재 순위</div>
+                    <div style="font-size:20px;font-weight:900;margin-bottom:4px">${state.rank.toLocaleString()}위</div>
+                    <div class="grade-bar-bg"><div class="grade-bar-fill" style="width:${Math.max(5,100-Math.round(state.rank/TOTAL_RIDERS*100))}%;background:var(--mint)"></div></div>
+                    <div style="font-size:10px;color:var(--sub);margin-top:4px">전체 ${TOTAL_RIDERS.toLocaleString()}명 중</div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="nextStep()" style="font-size:16px;padding:17px">
+                ${state.step + 1 >= TOTAL ? '최종 결과 확인' : '다음 배달 대기'}
+            </button>
+        </div>
+    `);
+}
+
+function nextStep() {
+    state.step++;
+    updateSteps();
+    updateHeader();
+    if (state.step >= TOTAL) { renderFinal(); }
+    else { showIdleScreen(); }
+}
+
+// =============================================
+// 최종 결과 (별점 폭탄 + 순위 추락)
+// =============================================
+function renderFinal() {
+    logAction('SIM_END');
+
+    // 강제 별점 1점 이벤트
+    state.earn = Math.max(0, state.earn - 2200);
+    const prevRank = state.rank;
+    state.rank = Math.min(TOTAL_RIDERS, state.rank + 800);
+    updateHeader();
+
+    // 헤더 빨간색으로
+    document.querySelector('.app-header').style.background = '#CC0000';
+    document.querySelector('.status-bar').style.background = '#CC0000';
+
+    const total = state.accepts + state.declines;
+    const acceptRate = total === 0 ? 100 : Math.round(state.accepts/total*100);
+    const logJSON = JSON.stringify({ summary: { earn: state.earn, rank: state.rank, accepts: state.accepts, declines: state.declines, acceptRate }, log: state.logs }, null, 2);
+
+    renderBody(`
+        <div style="padding:16px;padding-bottom:30px">
+            <!-- 별점 알림 -->
+            <div style="background:#FFF2F2;border:2px solid var(--red);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center">
+                <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:8px">⭐ 고객 별점 수신</div>
+                <div class="stars" style="justify-content:center;margin-bottom:8px">
+                    <span class="star filled">★</span>
+                    <span class="star empty">☆</span>
+                    <span class="star empty">☆</span>
+                    <span class="star empty">☆</span>
+                    <span class="star empty">☆</span>
+                </div>
+                <div style="background:white;border-radius:10px;padding:10px;font-size:12px;color:#555;font-style:italic;line-height:1.5">
+                    "음식이 많이 식어서 왔어요. 다음엔 좀 더 빨리 배달해주세요. 별로였습니다."
+                </div>
+                <div style="font-size:10px;color:var(--red);margin-top:8px;font-weight:700">
+                    → 이번 달 누적 1점 별점 경고 수신. 플랫폼 패널티 적용.
+                </div>
+            </div>
+
+            <!-- 수입 감점 알림 -->
+            <div class="warn-box" style="margin-bottom:14px;font-size:12px">
+                📉 플랫폼 서비스 품질 기준 미달로 인해 정산금 <strong>–2,200원</strong>이 자동 차감되었습니다.
+            </div>
+
+            <!-- 최종 결과 카드 -->
+            <div class="card" style="margin:0 0 14px">
+                <div style="padding:16px;text-align:center">
+                    <div style="font-size:12px;color:var(--sub);font-weight:600;margin-bottom:4px">최종 수입</div>
+                    <div style="font-size:32px;font-weight:900;color:var(--text)">${state.earn.toLocaleString()}<span style="font-size:16px">원</span></div>
+                </div>
+                <div class="income-row"><span class="income-label">배달 건수</span><span class="income-value">${state.step}건</span></div>
+                <div class="income-row"><span class="income-label">수락률</span><span class="income-value ${acceptRate < 90 ? 'minus' : ''}">${acceptRate}%</span></div>
+                <div class="income-row"><span class="income-label">최종 순위</span><span class="income-value minus">${state.rank.toLocaleString()}위</span></div>
+                <div class="income-row" style="background:#FFF8F8">
+                    <span class="income-label" style="color:var(--red)">순위 변동</span>
+                    <span class="income-value minus">▼ ${(state.rank - prevRank + 800).toLocaleString()} 계단 하락</span>
+                </div>
+            </div>
+
+            <!-- 다음 배달 예고: 불이익 -->
+            <div style="background:#FFF8EE;border-radius:14px;padding:14px 16px;margin-bottom:14px;border-left:4px solid var(--orange)">
+                <div style="font-size:13px;font-weight:900;color:var(--orange);margin-bottom:6px">⚠️ 다음 운행 예고</div>
+                <div style="font-size:12px;color:#555;line-height:1.7">
+                    • 수락률 ${acceptRate}% → 우선배차 자격 <strong style="color:var(--red)">박탈</strong><br>
+                    • 다음 배차까지 대기 시간 <strong style="color:var(--red)">+3분 연장</strong> 적용<br>
+                    • 낮은 수익 배달 우선 배정 가능성 증가<br>
+                    • 알고리즘 점수 <strong style="color:var(--red)">하위 30%</strong> 진입
+                </div>
+            </div>
+
+            <!-- 로그 데이터 -->
+            <div style="margin-bottom:14px">
+                <div style="font-size:10px;font-weight:800;color:var(--sub);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">행동 로그 (연구용)</div>
+                <textarea id="log-area" readonly style="width:100%;height:100px;font-size:9px;font-family:monospace;background:#F5F5F5;border:1px solid #DDD;border-radius:10px;padding:10px;resize:none;color:#333">${logJSON}</textarea>
+                <div style="font-size:10px;color:var(--red);margin-top:4px;font-weight:700">* 아래 버튼을 눌러 데이터를 복사한 후 설문지에 붙여넣어 주세요.</div>
+            </div>
+
+            <button onclick="copyAndSurvey()" class="btn btn-primary" style="font-size:15px;padding:17px;margin-bottom:10px">
+                📋 데이터 복사 후 설문 참여하기
+            </button>
+            <button onclick="openSurvey()" class="btn btn-secondary" style="font-size:13px;padding:13px;margin-bottom:10px;color:var(--mint);background:var(--mint-light)">
+                📝 설문 바로 참여하기
+            </button>
+            <button onclick="restartSim()" class="btn btn-secondary" style="font-size:13px;padding:12px">
+                다시 체험하기
+            </button>
+        </div>
+    `);
+}
+
+function copyAndSurvey() {
+    const t = document.getElementById('log-area');
+    if (t) {
+        t.select();
+        try {
+            navigator.clipboard.writeText(t.value);
+        } catch(e) {
+            t.setSelectionRange(0, t.value.length);
+            document.execCommand('copy');
+        }
+        toast('✅', '데이터 복사 완료! 설문지를 불러옵니다.');
+    }
+    setTimeout(() => openSurvey(), 800);
+}
+
+function openSurvey() {
+    const overlay = document.getElementById('survey-overlay');
+    overlay.style.display = 'flex';
+    // iframe은 처음 열릴 때만 로드
+    const iframe = document.getElementById('survey-iframe');
+    if (!iframe.src || iframe.src === 'about:blank') {
+        iframe.src = 'https://docs.google.com/forms/d/1aIlkPmdtTrI4XGoF3jSownmxGz4NDL4AaT705JBBG0s/viewform?embedded=true';
+    }
+}
+
+function closeSurvey() {
+    const overlay = document.getElementById('survey-overlay');
+    overlay.style.animation = 'none';
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.25s';
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.style.opacity = '';
+        overlay.style.transition = '';
+    }, 250);
+}
+
+function restartSim() {
+    location.reload();
+}
+
+// =============================================
+// 시뮬레이션 중도 종료
+// =============================================
+function showExitConfirm() {
+    // 인트로 화면에선 종료 버튼 의미 없으므로 무시
+    if (!state.logs.length) {
+        toast('ℹ️', '운행을 시작한 뒤 종료할 수 있습니다.');
+        return;
+    }
+    // 진행 현황 채우기
+    const total = state.accepts + state.declines;
+    const pct = total === 0 ? 100 : Math.round(state.accepts / total * 100);
+    document.getElementById('exit-steps').textContent = state.step + '건';
+    document.getElementById('exit-earn').textContent = state.earn.toLocaleString() + '원';
+    document.getElementById('exit-accept').textContent = pct + '%';
+    document.getElementById('modal-exit').classList.remove('hidden');
+}
+
+function closeExitConfirm() {
+    document.getElementById('modal-exit').classList.add('hidden');
+}
+
+function doEarlyExit() {
+    // 진행 중인 타이머 정리
+    clearInterval(state.timerInterval);
+    // 배차 모달 닫기
+    document.getElementById('modal-order').classList.add('hidden');
+    document.getElementById('modal-exit').classList.add('hidden');
+    logAction('EARLY_EXIT');
+    openSurvey();
+}
+
+// =============================================
+// 초기화
+// =============================================
+function init() {
+    // 종료 버튼은 시뮬레이션 시작 후에만 표시
+    document.getElementById('tab-exit-btn').style.display = 'none';
+    updateHeader();
+    updateSteps();
+    // 시계
+    setInterval(() => {
+        const now = new Date();
+        const h = now.getHours();
+        const m = String(now.getMinutes()).padStart(2,'0');
+        const suffix = h >= 12 ? '오후' : '오전';
+        const dh = h > 12 ? h-12 : (h===0?12:h);
+        document.getElementById('status-time').textContent = `${suffix} ${dh}:${m}`;
+    }, 10000);
+}
+
+init();
+</script>
+</body>
+</html>
